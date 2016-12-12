@@ -31,8 +31,12 @@ class ThreadedBackend(BaseMetricsBackend):
         self.fetched_items = 0
         self.bulk_size = 50
         self.bulk_timeout = 1  # second
-        self.backend = backend(*backend_args, **backend_kwargs)
+        self.backend_class = backend
+        self.backend_args = backend_args
+        self.backend_kwargs = backend_kwargs
+        self.backend = None
         self._queue = Queue(maxsize=queue_maxsize)
+        self._threading_lock = threading.Lock()
         self.start_worker()
 
     def write(self, name, **data):
@@ -67,6 +71,10 @@ class ThreadedBackend(BaseMetricsBackend):
     def worker(self):
         metrics = []
         last_write = time.time()
+
+        with self._threading_lock:
+            if self.backend is None:
+                self.backend = self.backend_class(*self.backend_args, **self.backend_kwargs)
 
         def send_metrics():
             try:

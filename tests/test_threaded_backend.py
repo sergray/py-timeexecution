@@ -162,6 +162,13 @@ class TestElastic(TestBaseBackend, ElasticTestMixin):
             queue_timeout=self.qtime,
         )
         settings.configure(backends=[self.backend])
+        attempts = 5
+        while attempts > 0 and self.backend.backend is None:
+            attempts -= 1
+            # wait till initialization of elasticsearch backend in a worker thread
+            time.sleep(0.1)
+            if self.backend.backend is not None:
+                break
         self._clear(self.backend.backend)
 
     def test_write_method(self):
