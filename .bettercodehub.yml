@@ -1,0 +1,7 @@
+exclude:
+- /docs/.*
+- /setup.py
+- /setup_gen.py
+component_depth: 3
+languages:
+- python
